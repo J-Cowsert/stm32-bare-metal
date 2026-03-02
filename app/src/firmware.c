@@ -1,8 +1,25 @@
+#include "libopencm3/cm3/systick.h"
+#include "libopencm3/stm32/f4/gpio.h"
 #include "libopencm3/stm32/rcc.h"
 #include "libopencm3/stm32/gpio.h"
+#include <stdint.h>
 
-#define LED_PORT GPIOA
-#define LED_PIN  GPIO5
+#define LED_PORT     (GPIOA)
+#define LED_PIN      (GPIO5)
+#define SYSTICK_FREQ (1000)
+#define CPU_FREQ     (84000000)
+
+volatile uint64_t ticks = 0; // 64 bit on 32 bit system. This has atomicity issues
+
+void sys_tick_handler(void) {
+    
+    ticks++; // not atomic
+}
+
+static uint64_t get_ticks(void) {
+
+    return ticks;
+}
 
 static void rcc_setup(void) {
 
@@ -15,26 +32,32 @@ static void gpio_setup(void) {
     gpio_mode_setup(LED_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LED_PIN);
 }
 
-static void delay_cycles(uint32_t cycles) {
+static void systick_setup(void) {
 
-    for (volatile uint32_t i = 0; i < cycles; i++) {
-
-        __asm__("nop");
-    }
-
-
+    systick_set_frequency(SYSTICK_FREQ, CPU_FREQ);
+    systick_counter_enable();
+    systick_interrupt_enable();
 }
+
+
 
 int main(void) {
 
     rcc_setup();
     gpio_setup();
+    systick_setup();
 
+
+    uint64_t start = get_ticks();
+    
     for(;;) {
 
-        gpio_toggle(LED_PORT, LED_PIN);
+        if (get_ticks() - start >= 100) {
+            gpio_toggle(LED_PORT, LED_PIN);
+            start = get_ticks();
+        }
 
-        delay_cycles(84000000 / 32);
+        
 
     }
 
