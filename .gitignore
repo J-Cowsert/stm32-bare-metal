@@ -1,0 +1,45 @@
+*.o
+*.obj
+*.elf
+*.d
+
+# Build directories
+build/
+obj/
+bin/
+
+# Executables
+*.exe
+*.out
+*.app
+*.hex
+*.bin
+*.elf
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+.cache/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Debug files
+*.lst
+*.map
+*.lss
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.tmp
