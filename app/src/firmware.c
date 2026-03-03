@@ -1,30 +1,13 @@
 #include "libopencm3/cm3/systick.h"
-#include "libopencm3/stm32/f4/gpio.h"
 #include "libopencm3/stm32/rcc.h"
 #include "libopencm3/stm32/gpio.h"
-#include <stdint.h>
+
+#include "common-defines.h"
+#include "core/system.h"
 
 #define LED_PORT     (GPIOA)
 #define LED_PIN      (GPIO5)
-#define SYSTICK_FREQ (1000)
-#define CPU_FREQ     (84000000)
 
-volatile uint64_t ticks = 0; // 64 bit on 32 bit system. This has atomicity issues
-
-void sys_tick_handler(void) {
-    
-    ticks++; // not atomic
-}
-
-static uint64_t get_ticks(void) {
-
-    return ticks;
-}
-
-static void rcc_setup(void) {
-
-    rcc_clock_setup_pll(&rcc_hsi_configs[RCC_CLOCK_3V3_84MHZ]);
-}
 
 static void gpio_setup(void) {
 
@@ -32,33 +15,19 @@ static void gpio_setup(void) {
     gpio_mode_setup(LED_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LED_PIN);
 }
 
-static void systick_setup(void) {
-
-    systick_set_frequency(SYSTICK_FREQ, CPU_FREQ);
-    systick_counter_enable();
-    systick_interrupt_enable();
-}
-
-
-
 int main(void) {
-
-    rcc_setup();
+    system_setup();
     gpio_setup();
-    systick_setup();
 
-
-    uint64_t start = get_ticks();
+    uint64_t start = system_get_ticks();
     
     for(;;) {
 
-        if (get_ticks() - start >= 100) {
+
+        if (system_get_ticks() - start >= 1100) {
             gpio_toggle(LED_PORT, LED_PIN);
-            start = get_ticks();
+            start = system_get_ticks();
         }
-
-        
-
     }
 
     return 0;
